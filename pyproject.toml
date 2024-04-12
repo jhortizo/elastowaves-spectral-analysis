@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "elastowaves-spectral-analysis"
+version = "0.1.0"
+description = ""
+authors = ["José Ortiz-Ocampo <joseortiz1807@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+solidspy = "^1.1.0.post1"
+ipykernel = "^6.29.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
