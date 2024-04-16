@@ -1,2 +1,6 @@
+# Python native stuff to ignore (as clean as possible)
+__pycache__/
+
+# Folders for dev and caching
 data/
 reference/
