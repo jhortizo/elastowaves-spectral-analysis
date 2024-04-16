@@ -9,6 +9,8 @@ readme = "README.md"
 python = "^3.12"
 solidspy = "^1.1.0.post1"
 ipykernel = "^6.29.4"
+meshio = "3.0"
+gmsh = "^4.12.2"
 
 
 [build-system]
