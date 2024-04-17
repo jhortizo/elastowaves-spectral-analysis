@@ -1,9 +1,13 @@
 
-from elastowaves_spectral_analysis.gmesher import create_square_mesh
+from elastowaves_spectral_analysis.fem_solver import solver
 
 def main():
-    create_square_mesh()
-    print('Mesh created!')
+    geometry_type = "triangle"
+    params = {
+        'side': 10.0,
+        'mesh_size': 1.0
+    }
+    solver(geometry_type, params)
 
 
 if __name__ == '__main__':
