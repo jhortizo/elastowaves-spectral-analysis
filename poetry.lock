@@ -1186,6 +1186,21 @@ numpy = "*"
 scipy = "*"
 
 [[package]]
+name = "solidspy_uels"
+version = "0.1.0"
+description = "This repository contain User Elements that are not part (yet) of S"
+optional = false
+python-versions = "*"
+files = []
+develop = false
+
+[package.source]
+type = "git"
+url = "https://github.com/nicoguaro/solidspy_uels"
+reference = "HEAD"
+resolved_reference = "6b7f59034844254ff4d52ecc4c7162f492c3391f"
+
+[[package]]
 name = "stack-data"
 version = "0.6.3"
 description = "Extract data from python stack frames and tracebacks for informative displays"
@@ -1253,4 +1268,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "f03fd070e09e79af8faac49c37e6afbf6b606e0ab23e58972e617bf6c2f7cd20"
+content-hash = "78b8223e932e9f34bb29d0cebd2db1a5f083f00bd46bb43145922207b270c5fa"
