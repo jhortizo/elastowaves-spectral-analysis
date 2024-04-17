@@ -1,4 +1,6 @@
-"""Create meshes programmatically, using gmsh API for python"""
+"""
+Create meshes programmatically, using gmsh API for python
+"""
 
 import gmsh
 

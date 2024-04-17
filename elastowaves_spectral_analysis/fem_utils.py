@@ -1,9 +1,11 @@
 """
 Supporting functions for the FEM solver
 """
+
 import numpy as np
 import solidspy.femutil as fem
 import solidspy.gaussutil as gau
+
 
 def acoust_diff(r, s, coord, element):
     """
@@ -56,7 +58,7 @@ def acoust_tri6(coord, params):
     mass_mat : ndarray (float)
         Local mass matrix.
     """
-    
+
     speed = params
     stiff_mat = np.zeros((6, 6))
     mass_mat = np.zeros((6, 6))

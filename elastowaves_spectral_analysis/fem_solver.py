@@ -2,17 +2,17 @@
 Solve for wave propagation in classical mechanics in the given domain.
 """
 
+import os
+
 import meshio
 import numpy as np
 import solidspy.assemutil as ass
-
 from scipy.sparse.linalg import eigsh
 
+from .constants import MESHES_FOLDER, SOLUTIONS_FOLDER
 from .fem_utils import acoust_tri6
 from .gmesher import create_mesh
 from .utils import parse_solution_identifier
-from .constants import MESHES_FOLDER, SOLUTIONS_FOLDER
-import os
 
 
 def load_mesh(mesh_file):
@@ -62,9 +62,7 @@ def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
     else:
         mats = np.array([[1.0]])
         mesh_file = f"{MESHES_FOLDER}/{solution_id}.msh"
-        if (
-            not os.path.exists(mesh_file) or force_reprocess
-        ):  # the mesh does not already exist
+        if not os.path.exists(mesh_file) or force_reprocess:
             create_mesh(geometry_type, params, mesh_file)
 
         cons, elements, nodes = load_mesh(mesh_file)
@@ -85,6 +83,5 @@ def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
     # import solidspy.postprocesor as pos
     # sol = pos.complete_disp(bc_array, nodes, eigvecs[:, 0], ndof_node=1)
     # pos.plot_node_field(sol[:, 0], nodes, elements)
-
 
     return bc_array, eigvals, eigvecs

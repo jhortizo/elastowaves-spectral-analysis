@@ -1,8 +1,8 @@
 import os
 
-MESHES_FOLDER = 'data/meshes'
-SOLUTIONS_FOLDER = 'data/solutions'
-IMAGES_FOLDER = 'data/images'
+MESHES_FOLDER = "data/meshes"
+SOLUTIONS_FOLDER = "data/solutions"
+IMAGES_FOLDER = "data/images"
 
 # Create the folders if they don't exist
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
