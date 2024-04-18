@@ -63,7 +63,7 @@ def _compute_solution(geometry_type: str, params: dict, files_dict: dict):
     )
 
     # Solution
-    eigvals, eigvecs = eigsh(stiff_mat, M=mass_mat, k=10, which="LM", sigma=1e-6)
+    eigvals, eigvecs = eigsh(stiff_mat, M=mass_mat, k=stiff_mat.shape[0]-1, which="SM")
 
     save_solution_files(bc_array, eigvals, eigvecs, files_dict)
 
