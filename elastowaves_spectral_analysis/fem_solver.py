@@ -2,22 +2,23 @@
 Solve for wave propagation in classical mechanics in the given domain.
 """
 
-import os
-
 import meshio
 import numpy as np
 import solidspy.assemutil as ass
 from scipy.sparse.linalg import eigsh
 from solidspy_uels.solidspy_uels import elast_tri6
 
-from .constants import MESHES_FOLDER, SOLUTIONS_FOLDER, MATERIAL_PARAMETERS
-
-from .fem_utils import acoust_tri6
+from .constants import MATERIAL_PARAMETERS
 from .gmesher import create_mesh
-from .utils import parse_solution_identifier
+from .utils import (
+    check_solution_files_exists,
+    generate_solution_filenames,
+    load_solution_files,
+    save_solution_files,
+)
 
 
-def load_mesh(mesh_file):
+def _load_mesh(mesh_file):
     mesh = meshio.read(mesh_file)
 
     points = mesh.points
@@ -43,61 +44,45 @@ def load_mesh(mesh_file):
     return cons, elements, nodes
 
 
-def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
-    solution_id = parse_solution_identifier(geometry_type, params)
+def _compute_solution(geometry_type: str, params: dict, files_dict: dict):
+    mats = [
+        MATERIAL_PARAMETERS["E"],
+        MATERIAL_PARAMETERS["NU"],
+        MATERIAL_PARAMETERS["RHO"],
+    ]  # order imposed by elast_tri6
 
-    bc_array_file = f"{SOLUTIONS_FOLDER}/{solution_id}-bc_array.csv"
-    eigvals_file = f"{SOLUTIONS_FOLDER}/{solution_id}-eigvals.csv"
-    eigvecs_file = f"{SOLUTIONS_FOLDER}/{solution_id}-eigvecs.csv"
-    mesh_file = f"{MESHES_FOLDER}/{solution_id}.msh"
+    mats = np.array([mats])
+
+    create_mesh(geometry_type, params, files_dict["mesh"])
+
+    cons, elements, nodes = _load_mesh(files_dict["mesh"])
+    # Assembly
+    assem_op, bc_array, neq = ass.DME(cons, elements, ndof_node=2, ndof_el_max=12)
+    stiff_mat, mass_mat = ass.assembler(
+        elements, mats, nodes, neq, assem_op, uel=elast_tri6
+    )
+
+    # Solution
+    eigvals, eigvecs = eigsh(stiff_mat, M=mass_mat, k=10, which="LM", sigma=1e-6)
+
+    save_solution_files(bc_array, eigvals, eigvecs, files_dict)
+
+    return bc_array, eigvals, eigvecs, nodes, elements
+
+
+def retrieve_solution(geometry_type: str, params: dict, force_reprocess: bool = False):
+    files_dict = generate_solution_filenames(geometry_type, params)
 
     # Check if solutions already exist
-    if (
-        os.path.exists(bc_array_file)
-        and os.path.exists(eigvals_file)
-        and os.path.exists(eigvecs_file)
-        and os.path.exists(mesh_file)
-        and not force_reprocess
-    ):
-        print(f"Loading existing solutions for {solution_id}")
-        # Load existing solutions
-        bc_array = np.loadtxt(bc_array_file, delimiter=",", dtype=int).reshape(-1, 1) # reshape to column vector
-        eigvals = np.loadtxt(eigvals_file, delimiter=",")
-        eigvecs = np.loadtxt(eigvecs_file, delimiter=",")
-        cons, elements, nodes = load_mesh(mesh_file)
+    if check_solution_files_exists(files_dict) and not force_reprocess:
+        print("Loading existing solutions")
+        bc_array, eigvals, eigvecs = load_solution_files(files_dict)
+        cons, elements, nodes = _load_mesh(files_dict["mesh"])
 
     else:
-        print(f"Generating solutions for {solution_id}")
-        mats = [
-            MATERIAL_PARAMETERS["E"],
-            MATERIAL_PARAMETERS["NU"],
-            MATERIAL_PARAMETERS["RHO"],
-        ]  # material parameters, in the order required by elast_tri6
-
-        mats = np.array([mats])
-        # mats = np.array([[1.0]])
-
-        create_mesh(geometry_type, params, mesh_file)
-
-        cons, elements, nodes = load_mesh(mesh_file)
-        # Assembly
-        assem_op, bc_array, neq = ass.DME(cons, elements, ndof_node=2, ndof_el_max=12)
-        stiff_mat, mass_mat = ass.assembler(
-            elements, mats, nodes, neq, assem_op, uel=elast_tri6
+        print("Generating solutions")
+        bc_array, eigvals, eigvecs, nodes, elements = _compute_solution(
+            geometry_type, params, files_dict
         )
-
-        # Solution
-        eigvals, eigvecs = eigsh(stiff_mat, M=mass_mat, k=10, which="LM", sigma=1e-6)
-
-        np.savetxt(bc_array_file, bc_array, delimiter=",")
-        np.savetxt(eigvals_file, eigvals, delimiter=",")
-        np.savetxt(eigvecs_file, eigvecs, delimiter=",")
-
-    # dev code, add breakpoint and check solution
-    # import solidspy.postprocesor as pos
-    # sol = pos.complete_disp(bc_array, nodes, eigvecs[:, 2], ndof_node=2)
-    # pos.plot_node_field(sol[:, 0], nodes, elements) # x component
-    # pos.plot_node_field(sol[:, 1], nodes, elements) # y component
-    # pos.plot_node_field(np.sqrt(sol[:, 0] ** 2 + sol[:, 1]**2) , nodes, elements) # disp. amplitude
 
     return bc_array, eigvals, eigvecs, nodes, elements
