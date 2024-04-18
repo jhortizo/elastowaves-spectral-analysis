@@ -47,23 +47,29 @@ def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
     bc_array_file = f"{SOLUTIONS_FOLDER}/{solution_id}-bc_array.csv"
     eigvals_file = f"{SOLUTIONS_FOLDER}/{solution_id}-eigvals.csv"
     eigvecs_file = f"{SOLUTIONS_FOLDER}/{solution_id}-eigvecs.csv"
+    mesh_file = f"{MESHES_FOLDER}/{solution_id}.msh"
 
     # Check if solutions already exist
     if (
         os.path.exists(bc_array_file)
         and os.path.exists(eigvals_file)
         and os.path.exists(eigvecs_file)
+        and os.path.exists(mesh_file)
         and not force_reprocess
     ):
+        print(f"Loading existing solutions for {solution_id}")
         # Load existing solutions
-        bc_array = np.loadtxt(bc_array_file, delimiter=",")
+        bc_array = np.loadtxt(bc_array_file, delimiter=",", dtype=int).reshape(
+            -1, 1
+        )  # reshape to column vector
         eigvals = np.loadtxt(eigvals_file, delimiter=",")
         eigvecs = np.loadtxt(eigvecs_file, delimiter=",")
+        cons, elements, nodes = load_mesh(mesh_file)
+
     else:
+        print(f"Generating solutions for {solution_id}")
         mats = np.array([[1.0]])
-        mesh_file = f"{MESHES_FOLDER}/{solution_id}.msh"
-        if not os.path.exists(mesh_file) or force_reprocess:
-            create_mesh(geometry_type, params, mesh_file)
+        create_mesh(geometry_type, params, mesh_file)
 
         cons, elements, nodes = load_mesh(mesh_file)
         # Assembly
@@ -84,4 +90,4 @@ def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
     # sol = pos.complete_disp(bc_array, nodes, eigvecs[:, 0], ndof_node=1)
     # pos.plot_node_field(sol[:, 0], nodes, elements)
 
-    return bc_array, eigvals, eigvecs
+    return bc_array, eigvals, eigvecs, nodes, elements
