@@ -8,8 +8,10 @@ import meshio
 import numpy as np
 import solidspy.assemutil as ass
 from scipy.sparse.linalg import eigsh
+from solidspy_uels.solidspy_uels import elast_tri6
 
-from .constants import MESHES_FOLDER, SOLUTIONS_FOLDER
+from .constants import MESHES_FOLDER, SOLUTIONS_FOLDER, MATERIAL_PARAMETERS
+
 from .fem_utils import acoust_tri6
 from .gmesher import create_mesh
 from .utils import parse_solution_identifier
@@ -30,7 +32,7 @@ def load_mesh(mesh_file):
 
     # Constraints
     line_nodes = list(set(line3.flatten()))
-    cons = np.zeros((npts, 1), dtype=int)
+    cons = np.zeros((npts, 2), dtype=int)
     cons[line_nodes, :] = -1
 
     # Elements
@@ -59,23 +61,29 @@ def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
     ):
         print(f"Loading existing solutions for {solution_id}")
         # Load existing solutions
-        bc_array = np.loadtxt(bc_array_file, delimiter=",", dtype=int).reshape(
-            -1, 1
-        )  # reshape to column vector
+        bc_array = np.loadtxt(bc_array_file, delimiter=",", dtype=int).reshape(-1, 1) # reshape to column vector
         eigvals = np.loadtxt(eigvals_file, delimiter=",")
         eigvecs = np.loadtxt(eigvecs_file, delimiter=",")
         cons, elements, nodes = load_mesh(mesh_file)
 
     else:
         print(f"Generating solutions for {solution_id}")
-        mats = np.array([[1.0]])
+        mats = [
+            MATERIAL_PARAMETERS["E"],
+            MATERIAL_PARAMETERS["NU"],
+            MATERIAL_PARAMETERS["RHO"],
+        ]  # material parameters, in the order required by elast_tri6
+
+        mats = np.array([mats])
+        # mats = np.array([[1.0]])
+
         create_mesh(geometry_type, params, mesh_file)
 
         cons, elements, nodes = load_mesh(mesh_file)
         # Assembly
-        assem_op, bc_array, neq = ass.DME(cons, elements, ndof_node=1, ndof_el_max=6)
+        assem_op, bc_array, neq = ass.DME(cons, elements, ndof_node=2, ndof_el_max=12)
         stiff_mat, mass_mat = ass.assembler(
-            elements, mats, nodes, neq, assem_op, uel=acoust_tri6
+            elements, mats, nodes, neq, assem_op, uel=elast_tri6
         )
 
         # Solution
@@ -87,7 +95,9 @@ def solver(geometry_type: str, params: dict, force_reprocess: bool = False):
 
     # dev code, add breakpoint and check solution
     # import solidspy.postprocesor as pos
-    # sol = pos.complete_disp(bc_array, nodes, eigvecs[:, 0], ndof_node=1)
-    # pos.plot_node_field(sol[:, 0], nodes, elements)
+    # sol = pos.complete_disp(bc_array, nodes, eigvecs[:, 2], ndof_node=2)
+    # pos.plot_node_field(sol[:, 0], nodes, elements) # x component
+    # pos.plot_node_field(sol[:, 1], nodes, elements) # y component
+    # pos.plot_node_field(np.sqrt(sol[:, 0] ** 2 + sol[:, 1]**2) , nodes, elements) # disp. amplitude
 
     return bc_array, eigvals, eigvecs, nodes, elements

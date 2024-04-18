@@ -1,5 +1,13 @@
 import os
 
+MATERIAL_PARAMETERS = {
+    "E": 1.0,
+    "NU": 0.3,
+    "RHO": 1.0,
+}
+
+SIDE_TO_MESH_SIZE_RATIO = 10
+
 MESHES_FOLDER = "data/meshes"
 SOLUTIONS_FOLDER = "data/solutions"
 IMAGES_FOLDER = "data/images"
