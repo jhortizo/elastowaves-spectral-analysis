@@ -63,7 +63,9 @@ def _compute_solution(geometry_type: str, params: dict, files_dict: dict):
     )
 
     # Solution
-    eigvals, eigvecs = eigsh(stiff_mat, M=mass_mat, k=stiff_mat.shape[0]-1, which="SM")
+    eigvals, eigvecs = eigsh(
+        stiff_mat, M=mass_mat, k=stiff_mat.shape[0] - 1, which="SM"
+    )
 
     save_solution_files(bc_array, eigvals, eigvecs, files_dict)
 
@@ -73,14 +75,11 @@ def _compute_solution(geometry_type: str, params: dict, files_dict: dict):
 def retrieve_solution(geometry_type: str, params: dict, force_reprocess: bool = False):
     files_dict = generate_solution_filenames(geometry_type, params)
 
-    # Check if solutions already exist
     if check_solution_files_exists(files_dict) and not force_reprocess:
-        print("Loading existing solutions")
         bc_array, eigvals, eigvecs = load_solution_files(files_dict)
-        cons, elements, nodes = _load_mesh(files_dict["mesh"])
+        _, elements, nodes = _load_mesh(files_dict["mesh"])
 
     else:
-        print("Generating solutions")
         bc_array, eigvals, eigvecs, nodes, elements = _compute_solution(
             geometry_type, params, files_dict
         )
