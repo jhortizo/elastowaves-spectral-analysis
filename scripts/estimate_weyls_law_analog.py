@@ -59,7 +59,7 @@ def plot_N_R_behavior(eigvalss, shapes, area_sampling):
 
 
 def plot_weyls_law_analog(eigvalss, areas_tested):
-    N_R_max = [len(eigvals) / np.max(eigvals) for eigvals in eigvalss]
+    N_R_max = np.array([len(eigvals) / np.max(eigvals) for eigvals in eigvalss])
 
     slope = calculate_slope(N_R_max, areas_tested)
     r_squared = calculate_rsquared(N_R_max, areas_tested)
@@ -83,7 +83,7 @@ def main():
     shapes = ["square", "triangle"]
 
     combinations = [(shape, area) for area in area_sampling for shape in shapes]
-    areas_tested = [combination[1] for combination in combinations]
+    areas_tested = np.array([combination[1] for combination in combinations])
 
     eigvalss = []
     for geometry_type, area in tqdm(combinations, desc="Test"):
