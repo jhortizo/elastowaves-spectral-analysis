@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
 import solidspy.postprocesor as pos
-from elastowaves_spectral_analysis.fem_solver import retrieve_solution
+
 from elastowaves_spectral_analysis.constants import IMAGES_FOLDER
+from elastowaves_spectral_analysis.fem_solver import retrieve_solution
+
 
 def plot_eigvec(ax, bc_array, nodes, eigvec, elements, eigval):
     sol = pos.complete_disp(bc_array, nodes, eigvec, ndof_node=2)
@@ -20,7 +21,6 @@ def plot_eigvec(ax, bc_array, nodes, eigvec, elements, eigval):
         fontsize=8,
         pad=1,
         color="black",
-
     )
 
 
