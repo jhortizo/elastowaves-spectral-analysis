@@ -53,33 +53,69 @@ def _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id):
     for i, eigvals in enumerate(eigvalss):
         shape, area = combinations[i]
         shape_id = list(shapes).index(shape)
-        line_style = line_styles[shape_id]
+        line_style = line_styles[shape_id % len(line_styles)]
 
         area_id = list(area_sampling).index(area)
-        color = colors[area_id]
+        color = colors[area_id % len(colors)]
 
         Ns = [_calculate_N(R, eigvals) for R in Rs]
         plt.plot(Rs, Ns, f"{color}{line_style}")
 
     plt.xlabel("R")
     plt.ylabel("N(R)")
-    plt.legend([f"{shape} area={area}" for shape, area in combinations], loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.legend(
+        [f"{shape} area={area}" for shape, area in combinations],
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+    )
     plt.tight_layout()
     plt.show()
     plt.savefig(f"{IMAGES_FOLDER}/N_R_behavior_{test_id}.png", dpi=300)
     plt.show()
 
 
-def _plot_weyls_law_analog(eigvalss, areas_tested, test_id):
+def _plot_weyls_law_analog(
+    eigvalss, areas_tested, shapes, area_sampling, test_id, fit_per_shape=False
+):
     N_R_max = np.array([len(eigvals) / np.max(eigvals) for eigvals in eigvalss])
+    plt.figure(figsize=(6, 4))
+    marker_styles = ["o", "s", "D", "^", "v", "P"]
+
+    combinations = [(shape, area) for area in area_sampling for shape in shapes]
+    if fit_per_shape:
+        for shape in shapes:
+            shape_id = list(shapes).index(shape)
+            marker_style = marker_styles[shape_id]
+            shape_eigvalss = [
+                eigvals
+                for eigvals, (this_shape, _) in zip(eigvalss, combinations)
+                if this_shape == shape
+            ]
+            shape_areas_tested = np.array(
+                [area for this_shape, area in combinations if this_shape == shape]
+            )
+            shape_N_R_max = np.array(
+                [len(eigvals) / np.max(eigvals) for eigvals in shape_eigvalss]
+            )
+
+            slope = _calculate_slope(shape_N_R_max, shape_areas_tested)
+            r_squared = _calculate_rsquared(shape_N_R_max, shape_areas_tested)
+            N_R_sample = np.linspace(np.min(shape_N_R_max), np.max(shape_N_R_max), 100)
+
+            plt.plot(shape_N_R_max, shape_areas_tested, f"k{marker_style}")
+            plt.plot(
+                N_R_sample,
+                slope * N_R_sample,
+                label=f"{shape.title()}, slope={slope:.2f}",
+            )
+    else:
+        plt.plot(N_R_max, areas_tested, "ko")
 
     slope = _calculate_slope(N_R_max, areas_tested)
     r_squared = _calculate_rsquared(N_R_max, areas_tested)
     N_R_sample = np.linspace(np.min(N_R_max), np.max(N_R_max), 100)
 
-    plt.figure(figsize=(6, 4))
-    plt.plot(N_R_max, areas_tested, "ko", label="Data")
-    plt.plot(N_R_sample, slope * N_R_sample, label="Linear Fit")
+    plt.plot(N_R_sample, slope * N_R_sample, label=f"Overall, slope={slope:.2f}")
     plt.xlabel("N(R_max) / R_max")
     plt.ylabel("Area")
     # plt.title("Linear Relation between Area and N(R_max) / R_max")
@@ -90,7 +126,7 @@ def _plot_weyls_law_analog(eigvalss, areas_tested, test_id):
     return slope, r_squared
 
 
-def run_analysis(area_sampling, shapes, SCRIPT_NAME):
+def run_analysis(area_sampling, shapes, SCRIPT_NAME, fit_per_shape=True):
     combinations = [(shape, area) for area in area_sampling for shape in shapes]
     areas_tested = np.array([combination[1] for combination in combinations])
 
@@ -102,7 +138,12 @@ def run_analysis(area_sampling, shapes, SCRIPT_NAME):
     _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id=SCRIPT_NAME)
 
     slope, r_squared = _plot_weyls_law_analog(
-        eigvalss, areas_tested, test_id=SCRIPT_NAME
+        eigvalss,
+        areas_tested,
+        shapes,
+        area_sampling,
+        test_id=SCRIPT_NAME,
+        fit_per_shape=fit_per_shape,
     )
 
     print(f"Slope: {slope}")
