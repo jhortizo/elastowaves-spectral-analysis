@@ -41,18 +41,31 @@ def _calculate_rsquared(x, y):
 
 
 def _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id):
+    combinations = [(shape, area) for area in area_sampling for shape in shapes]
+    colors = ["k", "r", "b", "g", "m", "c"]
+    line_styles = ["-", "--", "-.", ":", "-"]
+
     R = np.min([np.max(eigvals) for eigvals in eigvalss])
     R = np.ceil(R)
     Rs = np.linspace(1, R, 100)
 
-    plt.figure(figsize=(4, 3))
-    for eigvals in eigvalss:
+    plt.figure(figsize=(8, 4))
+    for i, eigvals in enumerate(eigvalss):
+        shape, area = combinations[i]
+        shape_id = list(shapes).index(shape)
+        line_style = line_styles[shape_id]
+
+        area_id = list(area_sampling).index(area)
+        color = colors[area_id]
+
         Ns = [_calculate_N(R, eigvals) for R in Rs]
-        plt.plot(Rs, Ns)
+        plt.plot(Rs, Ns, f"{color}{line_style}")
 
     plt.xlabel("R")
     plt.ylabel("N(R)")
-    plt.legend([f"{shape} area={area}" for shape in shapes for area in area_sampling])
+    plt.legend([f"{shape} area={area}" for shape, area in combinations], loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.tight_layout()
+    plt.show()
     plt.savefig(f"{IMAGES_FOLDER}/N_R_behavior_{test_id}.png", dpi=300)
     plt.show()
 
@@ -64,12 +77,12 @@ def _plot_weyls_law_analog(eigvalss, areas_tested, test_id):
     r_squared = _calculate_rsquared(N_R_max, areas_tested)
     N_R_sample = np.linspace(np.min(N_R_max), np.max(N_R_max), 100)
 
-    plt.figure(figsize=(4, 3))
+    plt.figure(figsize=(6, 4))
     plt.plot(N_R_max, areas_tested, "ko", label="Data")
     plt.plot(N_R_sample, slope * N_R_sample, label="Linear Fit")
     plt.xlabel("N(R_max) / R_max")
     plt.ylabel("Area")
-    plt.title("Linear Relation between Area and N(R_max) / R_max")
+    # plt.title("Linear Relation between Area and N(R_max) / R_max")
     plt.legend()
     plt.savefig(f"{IMAGES_FOLDER}/weyls_law_analog_{test_id}.png", dpi=300)
     plt.show()
