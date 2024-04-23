@@ -80,10 +80,12 @@ def _plot_weyls_law_analog(
     N_R_max = np.array([len(eigvals) / np.max(eigvals) for eigvals in eigvalss])
     plt.figure(figsize=(6, 4))
     marker_styles = ["o", "s", "D", "^", "v", "P"]
+    colors = ["b", "g", "m", "c"]
 
     combinations = [(shape, area) for area in area_sampling for shape in shapes]
     if fit_per_shape:
-        for shape in shapes:
+        for i, shape in enumerate(shapes):
+            color = colors[i % len(colors)]
             shape_id = list(shapes).index(shape)
             marker_style = marker_styles[shape_id]
             shape_eigvalss = [
@@ -102,20 +104,26 @@ def _plot_weyls_law_analog(
             r_squared = _calculate_rsquared(shape_N_R_max, shape_areas_tested)
             N_R_sample = np.linspace(np.min(shape_N_R_max), np.max(shape_N_R_max), 100)
 
-            plt.plot(shape_N_R_max, shape_areas_tested, f"k{marker_style}")
+            plt.plot(
+                shape_N_R_max,
+                shape_areas_tested,
+                f"{color}{marker_style}",
+                markersize=5,
+            )
             plt.plot(
                 N_R_sample,
                 slope * N_R_sample,
                 label=f"{shape.title()}, slope={slope:.2f}",
+                color=color,
             )
     else:
-        plt.plot(N_R_max, areas_tested, "ko")
+        plt.plot(N_R_max, areas_tested, "ko", markersize=5)
 
     slope = _calculate_slope(N_R_max, areas_tested)
     r_squared = _calculate_rsquared(N_R_max, areas_tested)
     N_R_sample = np.linspace(np.min(N_R_max), np.max(N_R_max), 100)
 
-    plt.plot(N_R_sample, slope * N_R_sample, label=f"Overall, slope={slope:.2f}")
+    plt.plot(N_R_sample, slope * N_R_sample, "r", label=f"Overall, slope={slope:.2f}")
     plt.xlabel("N(R_max) / R_max")
     plt.ylabel("Area")
     # plt.title("Linear Relation between Area and N(R_max) / R_max")
