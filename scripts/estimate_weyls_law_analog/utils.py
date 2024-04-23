@@ -20,7 +20,7 @@ def _calculate_params(geometry_type, area):
     return params
 
 
-def _calculate_eigenvalues(geometry_type, area):
+def calculate_eigenvalues(geometry_type, area):
     params = _calculate_params(geometry_type, area)
     _, eigvals, _, _, _ = retrieve_solution(geometry_type, params)
     return eigvals
@@ -116,6 +116,8 @@ def _plot_weyls_law_analog(
                 label=f"{shape.title()}, slope={slope:.2f}",
                 color=color,
             )
+
+            print(f"{shape.title()} slope: {slope}, R^2: {r_squared}")
     else:
         plt.plot(N_R_max, areas_tested, "ko", markersize=5)
 
@@ -124,35 +126,41 @@ def _plot_weyls_law_analog(
     N_R_sample = np.linspace(np.min(N_R_max), np.max(N_R_max), 100)
 
     plt.plot(N_R_sample, slope * N_R_sample, "r", label=f"Overall, slope={slope:.2f}")
-    plt.xlabel("N(R_max) / R_max")
-    plt.ylabel("Area")
+    plt.xlabel(r"N(R_{max}) / R_{max}")
+    plt.ylabel(r"A")
     # plt.title("Linear Relation between Area and N(R_max) / R_max")
     plt.legend()
     plt.savefig(f"{IMAGES_FOLDER}/weyls_law_analog_{test_id}.png", dpi=300)
     plt.show()
 
-    return slope, r_squared
+    print(f"Overall slope: {slope}, R^2: {r_squared}")
 
 
-def run_analysis(area_sampling, shapes, SCRIPT_NAME, fit_per_shape=True):
+def run_analysis(
+    area_sampling,
+    shapes,
+    SCRIPT_NAME,
+    fit_per_shape=True,
+    plot_N_R_behavior=True,
+    plot_weyls_law_analog=True,
+):
     combinations = [(shape, area) for area in area_sampling for shape in shapes]
     areas_tested = np.array([combination[1] for combination in combinations])
 
     eigvalss = []
     for geometry_type, area in tqdm(combinations, desc="Test"):
-        eigvals = _calculate_eigenvalues(geometry_type, area)
+        eigvals = calculate_eigenvalues(geometry_type, area)
         eigvalss.append(eigvals)
 
-    _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id=SCRIPT_NAME)
+    if plot_N_R_behavior:
+        _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id=SCRIPT_NAME)
 
-    slope, r_squared = _plot_weyls_law_analog(
-        eigvalss,
-        areas_tested,
-        shapes,
-        area_sampling,
-        test_id=SCRIPT_NAME,
-        fit_per_shape=fit_per_shape,
-    )
-
-    print(f"Slope: {slope}")
-    print(f"R^2: {r_squared}")
+    if plot_weyls_law_analog:
+        _plot_weyls_law_analog(
+            eigvalss,
+            areas_tested,
+            shapes,
+            area_sampling,
+            test_id=SCRIPT_NAME,
+            fit_per_shape=fit_per_shape,
+        )
