@@ -129,6 +129,7 @@ def _plot_weyls_law_analog(
     plt.ylabel(r"$A$")
     # plt.title("Linear Relation between Area and N(R_max) / R_max")
     plt.legend()
+    plt.tight_layout()
     plt.savefig(f"{IMAGES_FOLDER}/weyls_law_analog_{test_id}.png", dpi=300)
     plt.show()
 
