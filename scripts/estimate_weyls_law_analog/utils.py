@@ -69,7 +69,6 @@ def _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id):
         bbox_to_anchor=(1, 0.5),
     )
     plt.tight_layout()
-    plt.show()
     plt.savefig(f"{IMAGES_FOLDER}/N_R_behavior_{test_id}.png", dpi=300)
     plt.show()
 
