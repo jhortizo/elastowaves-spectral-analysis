@@ -59,10 +59,10 @@ def _plot_N_R_behavior(eigvalss, shapes, area_sampling, test_id):
         color = colors[area_id % len(colors)]
 
         Ns = [_calculate_N(R, eigvals) for R in Rs]
-        plt.plot(Rs, Ns, f"{color}{line_style}")
+        plt.plot(Rs, [N/R for N, R in zip(Ns, Rs)], f"{color}{line_style}")
 
-    plt.xlabel("R")
-    plt.ylabel("N(R)")
+    plt.xlabel(r"$R$")
+    plt.ylabel(r"$N(R)/R$")
     plt.legend(
         [f"{shape} area={area}" for shape, area in combinations],
         loc="center left",
@@ -125,8 +125,8 @@ def _plot_weyls_law_analog(
     N_R_sample = np.linspace(np.min(N_R_max), np.max(N_R_max), 100)
 
     plt.plot(N_R_sample, slope * N_R_sample, "r", label=f"Overall, slope={slope:.2f}")
-    plt.xlabel(r"N(R_{max}) / R_{max}")
-    plt.ylabel(r"A")
+    plt.xlabel(r"$N(R_{max}) / R_{max}$")
+    plt.ylabel(r"$A$")
     # plt.title("Linear Relation between Area and N(R_max) / R_max")
     plt.legend()
     plt.savefig(f"{IMAGES_FOLDER}/weyls_law_analog_{test_id}.png", dpi=300)

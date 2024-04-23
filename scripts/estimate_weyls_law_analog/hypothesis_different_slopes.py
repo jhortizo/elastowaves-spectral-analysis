@@ -26,7 +26,7 @@ def apply_t_test(slope1, slope2, std_err1, std_err2, dof1, dof2):
 
 def check_slopes_are_different():
 
-    area_sampling = np.linspace(1, 100, 20)
+    area_sampling = np.linspace(1, 1000, 100)
     shapes = ["square", "triangle"]
 
     combinations = [(shape, area) for area in area_sampling for shape in shapes]
